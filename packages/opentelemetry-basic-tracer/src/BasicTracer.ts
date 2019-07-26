@@ -27,6 +27,7 @@ import {
 } from '@opentelemetry/core';
 import { BasicTracerConfig } from '../src/types';
 import { BinaryFormat, HttpTextFormat } from '@opentelemetry/types';
+import { NoRecordingSpan } from './NoRecordingSpan';
 
 /**
  * This class represents a basic tracer.
@@ -56,38 +57,25 @@ export class BasicTracer implements types.Tracer {
    * decision.
    */
   startSpan(name: string, options: types.SpanOptions = {}): types.Span {
-    let parentSpanContext: types.SpanContext | undefined;
-
-    // parent is a SpanContext
-    if (options.parent && (options.parent as types.SpanContext).traceId) {
-      parentSpanContext = options.parent as types.SpanContext;
-    }
-    // parent is a Span
-    if (
-      options.parent &&
-      typeof (options.parent as types.Span).context === 'function'
-    ) {
-      parentSpanContext = (options.parent as types.Span).context();
-    }
+    const spanContext = this._getParentSpanContext(
+      options.parent
+    ) || /** This is a root span */
+    {
+      traceId: randomTraceId(),
+      spanId: '',
+    };
 
     // make sampling decision
-    if (!this._sampler.shouldSample(parentSpanContext)) {
-      // TODO: propagate SpanContext, for more information see
-      // https://github.com/open-telemetry/opentelemetry-js/pull/99#issuecomment-513325536
-      return BasicTracer.defaultSpan;
+    if (!this._sampler.shouldSample(spanContext)) {
+      return new NoRecordingSpan(spanContext);
     }
 
     // span context
-    const traceId = parentSpanContext
-      ? parentSpanContext.traceId
-      : randomTraceId();
+    const traceId = spanContext.traceId;
     const spanId = randomSpanId();
 
     // TODO: create a real Span
-    const span = new NoopSpan({
-      traceId,
-      spanId,
-    });
+    const span = new NoopSpan({ traceId, spanId });
 
     // Set default attributes
     span.setAttributes(this._defaultAttributes);
@@ -133,5 +121,22 @@ export class BasicTracer implements types.Tracer {
    */
   getHttpTextFormat(): HttpTextFormat {
     return this._httpTextFormat;
+  }
+
+  private _getParentSpanContext(
+    parent: types.Span | types.SpanContext | undefined
+  ): types.SpanContext | undefined {
+    if (!parent) return undefined;
+
+    // parent is a SpanContext
+    if ((parent as types.SpanContext).traceId) {
+      return parent as types.SpanContext;
+    }
+    // parent is a Span
+    if (typeof (parent as types.Span).context === 'function') {
+      return (parent as types.Span).context();
+    }
+
+    return undefined;
   }
 }
