@@ -1,12 +1,12 @@
-//const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
+const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
 const opentelemetry = require('@opentelemetry/core');
-const { BasicTracer, InMemorySpanExporter, SimpleSpanProcessor } = require('@opentelemetry/basic-tracer');
+const { BasicTracer, SimpleSpanProcessor } = require('@opentelemetry/basic-tracer');
 const { NoopScopeManager } = require('@opentelemetry/scope-base');
 
 const options = {
   serviceName: 'my-service'
 }
-const exporter = new InMemorySpanExporter();
+const exporter = new JaegerExporter(options);
 const tracer = new BasicTracer({scopeManager: new NoopScopeManager()});
 tracer.addSpanProcessor(new SimpleSpanProcessor(exporter));
 
