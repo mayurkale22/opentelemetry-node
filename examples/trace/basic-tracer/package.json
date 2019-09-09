@@ -1,0 +1,13 @@
+{
+  "name": "basic-tracer-example",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@opentelemetry/exporter-jaeger": "file:../../../packages/opentelemetry-exporter-jaeger",
+    "@opentelemetry/basic-tracer": "file:../../../packages/opentelemetry-basic-tracer",
+    "@opentelemetry/core": "file:../../../packages/opentelemetry-core",
+    "@opentelemetry/scope-base": "file:../../../packages/opentelemetry-scope-base"
+  }
+}
