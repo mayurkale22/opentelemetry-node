@@ -31,7 +31,7 @@ class DummyPlugin extends BasePlugin<unknown> {
   unpatch() {}
 }
 
-describe('WebTracer', () => {
+describe('WebTracerProvider', () => {
   describe('constructor', () => {
     let defaultOptions: WebTracerConfig;
 
